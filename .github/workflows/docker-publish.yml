@@ -37,3 +37,7 @@ jobs:
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:latest
           cache-to: type=inline
+          # Add these lines for better debugging
+          builder: ${{ steps.buildx.outputs.name }}
+          platforms: linux/amd64
+          no-cache: true
