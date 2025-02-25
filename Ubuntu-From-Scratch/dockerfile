@@ -2,7 +2,7 @@ FROM ubuntu:25.04 AS builder
 
 ARG FILENAME="nginx-1.25.3"
 ARG EXTENSION="tar.gz"
-
+ 
 # Install build dependencies
 RUN apt-get update && \
     apt-get install build-essential \
