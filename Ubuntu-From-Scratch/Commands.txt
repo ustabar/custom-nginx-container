@@ -1,0 +1,13 @@
+## https://docker-handbook.farhan.dev/image-manipulation-basics/#building-nginx-from-source
+
+> docker build --tag custom-nginx:built-v2 .
+> docker images  | findstr custom-nginx
+
+REPOSITORY      TAG         IMAGE ID       CREATED          SIZE
+custom-nginx    built-v2    80190d2ade8a   58 seconds ago   383MB
+
+> docker build -t nginx-custom-reduced -f dockerfile-reduced .
+> docker images | findstr reduced
+
+REPOSITORY      TAG         IMAGE ID       CREATED         SIZE
+custom-reduced  latest      d06d68e9a56a   3 minutes ago   84.5MB

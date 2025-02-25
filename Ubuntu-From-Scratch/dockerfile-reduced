@@ -1,0 +1,61 @@
+# Stage 1: Build Nginx
+FROM ubuntu:focal AS builder
+
+# Install build dependencies
+RUN apt-get update && \
+    apt-get install build-essential\ 
+                    libpcre3 \
+                    libpcre3-dev \
+                    zlib1g \
+                    zlib1g-dev \
+                    libssl1.1 \
+                    libssl-dev \
+                    -y && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+ARG FILENAME="nginx-1.19.2"
+ARG EXTENSION="tar.gz"
+
+# Download and extract Nginx source
+ADD https://nginx.org/download/${FILENAME}.${EXTENSION} .
+RUN tar -xvf ${FILENAME}.${EXTENSION} && rm ${FILENAME}.${EXTENSION}
+
+# Configure and build Nginx
+RUN cd ${FILENAME} && \
+    ./configure \
+        --sbin-path=/usr/bin/nginx \
+        --conf-path=/etc/nginx/nginx.conf \
+        --error-log-path=/var/log/nginx/error.log \
+        --http-log-path=/var/log/nginx/access.log \
+        --with-pcre \
+        --pid-path=/var/run/nginx.pid \
+        --with-http_ssl_module && \
+    make && make install
+
+# Stage 2: Create runtime image
+FROM ubuntu:focal
+
+# Install runtime dependencies only
+RUN apt-get update && \
+    apt-get install -y \
+        libpcre3 \
+        zlib1g \
+        libssl1.1 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Create necessary directories
+RUN mkdir -p /var/log/nginx && \
+    mkdir -p /etc/nginx
+
+# Copy Nginx files from builder stage
+COPY --from=builder /usr/bin/nginx /usr/bin/nginx
+COPY --from=builder /etc/nginx/nginx.conf /etc/nginx/nginx.conf
+
+# Create nginx user and set permissions
+RUN useradd -r nginx && \
+    chown -R nginx:nginx /var/log/nginx
+
+# Switch to non-root user
+USER nginx
+
+CMD ["nginx", "-g", "daemon off;"]
