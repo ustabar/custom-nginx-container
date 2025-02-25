@@ -1,11 +1,9 @@
-FROM ubuntu:25.04
+FROM ubuntu:25.04 AS builder
 
-# Create necessary directories first
-RUN mkdir -p /var/log/nginx \
-    /var/run \
-    /etc/nginx
+ARG FILENAME="nginx-1.19.2"
+ARG EXTENSION="tar.gz"
 
-# Install dependencies
+# Install build dependencies
 RUN apt-get update && \
     apt-get install build-essential \
                     libpcre3 \
@@ -15,19 +13,12 @@ RUN apt-get update && \
                     libssl3 \
                     libssl-dev \
                     -y && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+                    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-ARG FILENAME="nginx-1.19.2"
-ARG EXTENSION="tar.gz"
-
-WORKDIR /tmp/build
-
-# Download and extract Nginx
+                    # Download and extract Nginx
 ADD https://nginx.org/download/${FILENAME}.${EXTENSION} .
-RUN tar -xvf ${FILENAME}.${EXTENSION} && rm ${FILENAME}.${EXTENSION}
-
-# Configure and build Nginx
-RUN cd ${FILENAME} && \
+RUN tar -xvf ${FILENAME}.${EXTENSION} && \
+    cd ${FILENAME} && \
     ./configure \
         --sbin-path=/usr/bin/nginx \
         --conf-path=/etc/nginx/nginx.conf \
@@ -39,15 +30,38 @@ RUN cd ${FILENAME} && \
         --prefix=/etc/nginx \
         --user=nginx \
         --group=nginx && \
-    make && make install
+    make && \
+    make install
 
-# Cleanup
-RUN rm -rf /tmp/build
+
+# Stage 2: Runtime
+FROM ubuntu:25.04
+
+EXPOSE 80
+
+# Install runtime dependencies only
+RUN apt-get update && \
+    apt-get install build-essential \
+                    libpcre3 \
+                    libpcre3-dev \
+                    zlib1g \
+                    zlib1g-dev \
+                    libssl3 \
+                    libssl-dev \
+                    -y && \                    
+                    apt-get clean && \
+                    rm -rf /var/lib/apt/lists/* && \
+                    mkdir -p /var/log/nginx
+
+# Copy only necessary files from builder
+COPY --from=builder /usr/bin/nginx /usr/bin/nginx
+COPY --from=builder /etc/nginx /etc/nginx
 
 # Create nginx user and set permissions
 RUN useradd -r nginx && \
     chown -R nginx:nginx /var/log/nginx
 
-EXPOSE 80
+# Switch to non-root user
+USER nginx
 
 CMD ["nginx", "-g", "daemon off;"]
