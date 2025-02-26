@@ -33,7 +33,6 @@ RUN tar -xvf ${FILENAME}.${EXTENSION} && \
     make && \
     make install
 
-
 # Stage 2: Runtime
 FROM ubuntu:25.04
 

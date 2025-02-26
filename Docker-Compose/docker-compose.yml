@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Frontend ASP.NET Core MVC application
+  frontend:
+    build:
+      context: ../ # Assumes the context is one level up from Docker-Compose folder
+      dockerfile: Docker-Compose/frontend.Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ApiUrl=http://api:5000
+    depends_on:
+      - api
+    networks:
+      - app-network
+
+  # Backend Web API
+  api:
+    build:
+      context: ../ # Assumes the context is one level up from Docker-Compose folder
+      dockerfile: Docker-Compose/api.Dockerfile
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=AppDb;User=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  # SQL Server Database
+  db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Passw0rd
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mssql-data:
+    driver: local

@@ -1,0 +1,40 @@
+docker build -t buggybits .
+
+docker run -d -p 80:8082 --name bb buggybits
+
+$ip=docker inspect --format "{{ .NetworkSettings.Networks.nat.IPAddress }}" bb
+
+Start-Process -FilePath http://$ip
+
+
+docker compose:
+https://gokhansengun.com/docker-compose-nasil-kullanilir/
+
+
+# https://artisticcheese.wordpress.com/2017/09/09/enabling-integrated-windows-authentication-in-windows-docker-container/
+# https://artisticcheese.wordpress.com/2017/09/10/using-windows-authentication-in-asp-net-core-via-http-sys-server/
+# https://artisticcheese.wordpress.com/?s=win.json
+# https://artisticcheese.wordpress.com/2018/01/27/extending-windows-authentication-in-docker-containers-in-accessing-cross-container-resources/
+# https://artisticcheese.wordpress.com/2017/09/10/asp-net-core-and-integrated-windows-authentication-in-nanoserver-container/
+# https://github.com/artisticcheese/artisticcheesecontainer
+# https://github.com/artisticcheese/artisticcheesecontainer/wiki
+# https://github.com/artisticcheese/artisticcheesecontainer/wiki/Setting-up-Azure-Service-Fabric
+# https://github.com/artisticcheese
+# https://github.com/artisticcheese/ContainerWindowsAuth
+#
+# https://stackoverflow.com/questions/47337969/integrating-windows-authentication-in-docker-container-asp-net-app
+#
+# https://www.youtube.com/watch?v=lxH-C_Ij_Xc
+
+
+
+Invoke-WebRequest "https://raw.githubusercontent.com/Microsoft/Virtualization-Documentation/live/windows-server-container-tools/ServiceAccounts/CredentialSpec.psm1" -UseBasicParsing -OutFile $env:TEMP\cred.psm1
+import-module $env:temp\cred.psm1
+New-CredentialSpec -Name win -AccountName containerhost
+#This will return location and name of JSON file
+Get-CredentialSpec
+
+
+
+Get-WebRequest | select timeElapsed, timeInState, timeInModule, currentModule, url, @{n='pipeLineState';e={ switch($_.Attributes | ?{ $_.Name -eq 'pipeLineState'} | select -ExpandProperty Value) { 1 {'BeginRequest'} 2 {'AuthenticateRequest'} 4 {'AuthorizeRequest'} 8 {'ResolveRequestCache'} 16 {'MapRequestHandler'} 32 {'AcquireRequestState'} 64 {'PreExecuteRequestHandler'} 128 {'ExecuteRequestHandler'} 256 {'ReleaseRequestState'} 512 {'UpdateRequestCache'} 1024 {'LogRequest'} 2048 {'EndRequest'} 536870912 {'SendResponse'} default {'Unknown'} } }} | Sort-Object timeElapsed -Descending | ft timeElapsed, timeInState, timeInModule, currentModule, pipeLineState, url -AutoSize
+
