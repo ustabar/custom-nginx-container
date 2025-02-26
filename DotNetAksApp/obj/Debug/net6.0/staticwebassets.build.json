@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "Ig8aKiynxutN9MBU8puz/zeC//LWcH1w0T7NUPlzTBY=",
+  "Source": "DotNetAksApp",
+  "BasePath": "_content/DotNetAksApp",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
